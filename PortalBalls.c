@@ -9,8 +9,10 @@
 #define GRAVITY -0.0981
 #define BULLET_SPEED 3.0
 #define MAX_PORTALS 2
+#define NUM_WALLS 1
 
 void init(void);
+void initWalls(void);
 void display(void);
 void reshape(int, int);
 void moveCamera(void);
@@ -22,31 +24,35 @@ void mouseMove(int, int);
 void updatePosition(void);
 void activeMouseFunction(int, int, int, int);
 void shootPBall(int);
-void movePBalls();
-void displayPBalls();
+void movePBalls(void);
+void displayPBalls(void);
+void displayWalls(void);
+void buildWall(float,float,float,float,float,float);
 
 
 
+
+struct box{
+	int xMin,xMax, yMin, yMax, zMin, zMax; 
+};
+
+typedef box wall;
+
+struct ball{
+	GLfloat pos[3], velocity[3], color[3];
+	int exists;
+};
+
+typedef ball pBall;
 
 float cameraPos[3];
 float cameraXRot, cameraYRot;
 float velocity;
 int keyMap[256];
-wall walls[10];
+wall walls[NUM_WALLS];
 int lastX, lastY;
 
-struct wall{
-	int xMin,xMax, yMin, yMax, zMin, zMax; 
-};
-
-typedef wall wall;
-
-struct pBall{
-	GLfloat pos[3], velocity[3], color[3];
-	int exists;
-};
-
-struct pBall balls[2];
+pBall balls[2];
 
 int main (int argc, char **argv){
 	glutInit(&argc, argv);
@@ -99,6 +105,8 @@ void init(){
 	balls[1].color[1] = 0.5;
 	balls[1].color[2] = 0.0;
 	
+	initWalls();
+
 	int i;
 	for(i = 0; i < 256; i++)
 		keyMap[i] = 0;
@@ -116,7 +124,8 @@ void display(){
 	moveCamera();
 	movePBalls();
 	displayPBalls();
-	
+	displayWalls();
+
 	glColor3f(1.0f,0.0f,0.0f);
 	glutSolidCube(5);
 
@@ -157,6 +166,16 @@ void displayPBalls(){
 		}
 	}
 	
+}
+
+void displayWalls(){
+	int i;
+	for (i < 0; i < NUM_WALLS; i++){
+		glColor3f(1.0,1.0,0.0);
+		buildWall(walls[i].xMin,walls[i].xMax,walls[i].yMin,walls[i].xMax,
+			walls[i].zMin, walls[i].zMax);
+	}
+
 }
 
 void updatePosition(){
@@ -290,8 +309,16 @@ void shootPBall(int which){
 		BULLET_SPEED * (-1*(shotPos[2] - (shotPos[2] + shotInc[2])));
 }
 
+void initWalls(){
+	walls[0].xMin = -5;
+	walls[0].xMax = 5;
+	walls[0].yMin = 0;
+	walls[0].yMax = 10;
+	walls[0].zMin = -1;
+	walls[0].zMax = 1;
+}
 
-void buildWall(int xMin,int xMax,int yMin,int yMax,int zMin,int zMax;){
+void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
 	glBegin(GL_POLYGON);
 		glVertex3f(xMin,yMax,zMin);
 		glVertex3f(xMin,yMax,zMax);
@@ -303,4 +330,3 @@ void buildWall(int xMin,int xMax,int yMin,int yMax,int zMin,int zMax;){
 		glVertex3f(xMin,yMin,zMin);
 	glEnd();
 }
-
