@@ -7,6 +7,8 @@
 
 #define WIN_DIM 800
 #define GRAVITY -0.0981
+#define BULLET_SPEED 3.0
+#define MAX_PORTALS 2
 
 void init(void);
 void display(void);
@@ -18,12 +20,23 @@ void timerFunc(int);
 void keyCheck(void);
 void mouseMove(int, int);
 void updatePosition(void);
+void activeMouseFunction(int, int, int, int);
+void shootPBall(int);
+void movePBalls();
+void displayPBalls();
 
 float cameraPos[3];
 float cameraXRot, cameraYRot;
 float velocity;
 int keyMap[256];
 int lastX, lastY;
+
+struct pBall{
+	GLfloat pos[3], velocity[3], color[3];
+	int exists;
+};
+
+struct pBall balls[2];
 
 int main (int argc, char **argv){
 	glutInit(&argc, argv);
@@ -52,6 +65,7 @@ void init(){
 	glutKeyboardUpFunc(keyOut);
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	glutPassiveMotionFunc(mouseMove);
+	glutMouseFunc(activeMouseFunction);
 
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -65,6 +79,16 @@ void init(){
 	lastY = WIN_DIM / 2;
 	velocity = 0;
 
+	balls[0].exists = 0;
+	balls[1].exists = 0;
+	
+	balls[0].color[0] = 0.0;
+	balls[0].color[1] = 0.0;
+	balls[0].color[2] = 1.0;
+	balls[1].color[0] = 1.0;
+	balls[1].color[1] = 0.5;
+	balls[1].color[2] = 0.0;
+	
 	int i;
 	for(i = 0; i < 256; i++)
 		keyMap[i] = 0;
@@ -80,12 +104,25 @@ void display(){
 	keyCheck();
 	updatePosition();
 	moveCamera();
+	movePBalls();
+	displayPBalls();
 	
 	glColor3f(1.0f,0.0f,0.0f);
 	glutSolidCube(5);
 
 	glutSwapBuffers();
 
+}
+
+void movePBalls(){
+	int i;
+	for (i = 0; i < MAX_PORTALS; i++){
+		if(balls[i].exists){
+			balls[i].pos[0] += balls[i].velocity[0];
+			balls[i].pos[1] += balls[i].velocity[1];
+			balls[i].pos[2] += balls[i].velocity[2];
+		}
+	}
 }
 
 void moveCamera(){
@@ -95,6 +132,20 @@ void moveCamera(){
 	if(cameraPos[1] < 0)
 		cameraPos[1] = 0;
 	glTranslatef(-cameraPos[0],-cameraPos[1],-cameraPos[2]);
+	
+}
+
+void displayPBalls(){
+	int i;
+	for(i = 0; i < MAX_PORTALS; i++){
+		if(balls[i].exists){
+			glPushMatrix();
+				glColor3f(balls[i].color[0], balls[i].color[1], balls[i].color[2]);
+				glTranslatef(balls[i].pos[0], balls[i].pos[1], balls[i].pos[2]);
+				glutSolidSphere(2.0, 20.0, 20.0);
+			glPopMatrix();
+		}
+	}
 	
 }
 
@@ -193,3 +244,39 @@ void mouseMove(int x, int y){
 		glutWarpPointer(lastX, lastY);
 	}
 }
+
+void activeMouseFunction(int button, int state, int x, int y){
+	if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+		shootPBall(0);
+		balls[0].exists = 1;
+	}
+	if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN){
+		shootPBall(1);
+		balls[1].exists = 1;
+	}
+}
+
+void shootPBall(int which){
+	float shotPos[3], shotInc[3];
+	float xRotRad, yRotRad;
+	yRotRad = (cameraYRot / 180 * M_PI);
+	xRotRad = (cameraXRot / 180 * M_PI);
+	shotInc[0] = (float)(sin(yRotRad));
+	shotInc[1] = - (float)(sin(xRotRad));
+	shotInc[2] = - (float)(cos(yRotRad));
+
+	shotPos[0] = cameraPos[0] + shotInc[0];
+	shotPos[1] = cameraPos[1] + shotInc[1];
+	shotPos[2] = cameraPos[2] + shotInc[2];
+	
+	balls[which].pos[0] = shotPos[0];
+	balls[which].pos[1] = shotPos[1];
+	balls[which].pos[2] = shotPos[2];
+	balls[which].velocity[0] = 
+		BULLET_SPEED * (-1*(shotPos[0] - (shotPos[0] + shotInc[0])));
+	balls[which].velocity[1] = 
+		BULLET_SPEED * (-1*(shotPos[1] - (shotPos[1] + shotInc[1])));
+	balls[which].velocity[2] = 
+		BULLET_SPEED * (-1*(shotPos[2] - (shotPos[2] + shotInc[2])));
+}
+
