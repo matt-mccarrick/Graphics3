@@ -10,6 +10,18 @@
 #define BULLET_SPEED 3.0
 #define MAX_PORTALS 2
 
+
+struct wall{
+	int xMin,xMax, yMin, yMax, zMin, zMax; 
+};
+
+typedef wall wall;
+
+struct pBall{
+	GLfloat pos[3], velocity[3], color[3];
+	int exists;
+};
+
 void init(void);
 void display(void);
 void reshape(int, int);
@@ -24,6 +36,7 @@ void activeMouseFunction(int, int, int, int);
 void shootPBall(int);
 void movePBalls();
 void displayPBalls();
+void buildWall(int,int,int,int,int,int);
 
 
 
@@ -35,16 +48,7 @@ int keyMap[256];
 wall walls[10];
 int lastX, lastY;
 
-struct wall{
-	int xMin,xMax, yMin, yMax, zMin, zMax; 
-};
 
-typedef wall wall;
-
-struct pBall{
-	GLfloat pos[3], velocity[3], color[3];
-	int exists;
-};
 
 struct pBall balls[2];
 
@@ -118,6 +122,7 @@ void display(){
 	displayPBalls();
 	
 	glColor3f(1.0f,0.0f,0.0f);
+	buildWall(5,10,0,10,5,4);
 	glutSolidCube(5);
 
 	glutSwapBuffers();
@@ -291,12 +296,39 @@ void shootPBall(int which){
 }
 
 
-void buildWall(int xMin,int xMax,int yMin,int yMax,int zMin,int zMax;){
-	glBegin(GL_POLYGON);
+void buildWall(int xMin,int xMax,int yMin,int yMax,int zMin,int zMax){
+	glBegin(GL_QUADS);
+		//face 1
 		glVertex3f(xMin,yMax,zMin);
 		glVertex3f(xMin,yMax,zMax);
 		glVertex3f(xMax,yMax,zMax);
 		glVertex3f(xMax,yMax,zMin);
+		
+		//face 2
+		glVertex3f(xMin,yMax,zMin);
+		glVertex3f(xMax,yMax,zMin);
+		glVertex3f(xMax,yMin,zMin);
+		glVertex3f(xMin,yMin,zMin);
+		
+		//face 3
+		glVertex3f(xMin,yMax,zMin);
+		glVertex3f(xMin,yMax,zMax);
+		glVertex3f(xMin,yMin,zMax);
+		glVertex3f(xMin,yMin,zMin);
+
+		//face 4
+		glVertex3f(xMin,yMax,zMax);
+		glVertex3f(xMax,yMax,zMax);
+		glVertex3f(xMax,yMin,zMax);
+		glVertex3f(xMin,yMin,zMax);
+		
+		//face 5		
+		glVertex3f(xMax,yMax,zMax);
+		glVertex3f(xMax,yMax,zMin);
+		glVertex3f(xMax,yMin,zMin);
+		glVertex3f(xMax,yMin,zMax);
+		
+		//face 6
 		glVertex3f(xMax,yMin,zMin);
 		glVertex3f(xMax,yMin,zMax);
 		glVertex3f(xMin,yMin,zMax);
