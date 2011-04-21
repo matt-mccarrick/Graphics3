@@ -19,10 +19,18 @@ void keyCheck(void);
 void mouseMove(int, int);
 void updatePosition(void);
 
+struct wall{
+	int xMin,xMax, yMin, yMax, zMin, zMax; 
+};
+
+typedef wall wall;
+
+
 float cameraPos[3];
 float cameraXRot, cameraYRot;
 float velocity;
 int keyMap[256];
+wall walls[10];
 int lastX, lastY;
 
 int main (int argc, char **argv){
@@ -186,10 +194,16 @@ void mouseMove(int x, int y){
 	//set the xrot to yrot with the addition of the difference in the x position
 
     cameraYRot += (float) diffx;
-	if ((x >= (WIN_DIM/2) + 10 || x <= (WIN_DIM/2) - 10 || 
-		y >= (WIN_DIM/2) + 10 || y <= (WIN_DIM/2) - 10)){
+	if ((x >= (WIN_DIM/2) + 5 || x <= (WIN_DIM/2) - 5 || 
+		y >= (WIN_DIM/2) + 5 || y <= (WIN_DIM/2) - 5)){
 		lastX = WIN_DIM/2;
 		lastY = WIN_DIM/2;
 		glutWarpPointer(lastX, lastY);
 	}
+}
+
+void buildWall(int xMin,int xMax,int yMin,int yMax,int zMin,int zMax;){
+	glBegin(GL_POLYGON);
+		glVertex3f(minX, );
+	glEnd();
 }
