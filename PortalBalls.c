@@ -122,11 +122,9 @@ void display(){
 	moveCamera();
 	movePBalls();
 	displayPBalls();
-	displayWalls();
 
-	glColor3f(1.0f,0.0f,0.0f);
-	//buildWall(5,10,0,10,5,4);
-	glutSolidCube(5);
+	//Display the walls
+	displayWalls();
 
 	glutSwapBuffers();
 
@@ -169,7 +167,7 @@ void displayPBalls(){
 
 void displayWalls(){
 	int i;
-	for (i < 0; i < NUM_WALLS; i++){
+	for (i = 0; i < NUM_WALLS; i++){
 		glColor3f(1.0,1.0,0.0);
 		buildWall(walls[i].xMin,walls[i].xMax,walls[i].yMin,walls[i].xMax,
 			walls[i].zMin, walls[i].zMax);
