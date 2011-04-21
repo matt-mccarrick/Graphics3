@@ -30,10 +30,8 @@ void displayWalls(void);
 void buildWall(float,float,float,float,float,float);
 
 
-
-
 struct box{
-	int xMin,xMax, yMin, yMax, zMin, zMax; 
+	float xMin,xMax, yMin, yMax, zMin, zMax; 
 };
 
 typedef box wall;
@@ -127,6 +125,7 @@ void display(){
 	displayWalls();
 
 	glColor3f(1.0f,0.0f,0.0f);
+	//buildWall(5,10,0,10,5,4);
 	glutSolidCube(5);
 
 	glutSwapBuffers();
@@ -319,11 +318,38 @@ void initWalls(){
 }
 
 void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
-	glBegin(GL_POLYGON);
+	glBegin(GL_QUADS);
+		//face 1
 		glVertex3f(xMin,yMax,zMin);
 		glVertex3f(xMin,yMax,zMax);
 		glVertex3f(xMax,yMax,zMax);
 		glVertex3f(xMax,yMax,zMin);
+		
+		//face 2
+		glVertex3f(xMin,yMax,zMin);
+		glVertex3f(xMax,yMax,zMin);
+		glVertex3f(xMax,yMin,zMin);
+		glVertex3f(xMin,yMin,zMin);
+		
+		//face 3
+		glVertex3f(xMin,yMax,zMin);
+		glVertex3f(xMin,yMax,zMax);
+		glVertex3f(xMin,yMin,zMax);
+		glVertex3f(xMin,yMin,zMin);
+
+		//face 4
+		glVertex3f(xMin,yMax,zMax);
+		glVertex3f(xMax,yMax,zMax);
+		glVertex3f(xMax,yMin,zMax);
+		glVertex3f(xMin,yMin,zMax);
+		
+		//face 5		
+		glVertex3f(xMax,yMax,zMax);
+		glVertex3f(xMax,yMax,zMin);
+		glVertex3f(xMax,yMin,zMin);
+		glVertex3f(xMax,yMin,zMax);
+		
+		//face 6
 		glVertex3f(xMax,yMin,zMin);
 		glVertex3f(xMax,yMin,zMax);
 		glVertex3f(xMin,yMin,zMax);
