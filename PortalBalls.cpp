@@ -13,6 +13,7 @@
 #define MAX_PORTALS 2
 #define NUM_WALLS 1
 #define WALL_BORDER 1.5
+#define PORTAL_SIZE 5.0
 
 void init(void);
 void initWalls(void);
@@ -34,6 +35,7 @@ void buildWall(float,float,float,float,float,float);
 void setupWall(int, float,float,float,float,float,float);
 void checkShotCollision(void);
 void wallCollision(void);
+void portalCollision(void);
 
 struct box{
 	float xMin,xMax, yMin, yMax, zMin, zMax; 
@@ -137,6 +139,7 @@ void display(){
 	displayWalls();
 	checkShotCollision();
 	wallCollision();
+	portalCollision();
 	glutSwapBuffers();
 
 }
@@ -167,9 +170,12 @@ void displayPBalls(){
 	for(i = 0; i < MAX_PORTALS; i++){
 		if(balls[i].exists){
 			glPushMatrix();
+
 				glColor3f(balls[i].color[0], balls[i].color[1], balls[i].color[2]);
 				glTranslatef(balls[i].pos[0], balls[i].pos[1], balls[i].pos[2]);
-				glutSolidSphere(2.0, 20.0, 20.0);
+				if(balls[i].isPortal)
+					glScalef(PORTAL_SIZE, PORTAL_SIZE, PORTAL_SIZE);
+				glutSolidSphere(1.0, 20.0, 20.0);
 			glPopMatrix();
 		}
 	}
@@ -200,6 +206,7 @@ void checkShotCollision(){
 
 				if(xOk && yOk && zOk){
 					balls[i].isPortal = true;
+					
 					printf("%g, %g, %g\n", 
 						balls[i].pos[0], balls[i].pos[1], balls[i].pos[2]);
 				}
@@ -219,13 +226,32 @@ void wallCollision(){
 			&& cameraPos[2] < walls[k].zMax + WALL_BORDER;
 
 		if(xOk && yOk && zOk){
-			printf("%g, %g, %g\n", 
-						cameraPos[0], cameraPos[1], cameraPos[2]);
+			//printf("%g, %g, %g\n", 
+			//			cameraPos[0], cameraPos[1], cameraPos[2]);
 			event = true;
 		}
 		
 	}
 	
+}
+
+void portalCollision(){
+	int i;
+	for(i = 0; i < MAX_PORTALS; i++){
+		if(balls[i].isPortal){
+			float distance = sqrt(pow(cameraPos[0] - balls[i].pos[0], 2) + 
+				pow(cameraPos[1] - balls[i].pos[1], 2) + 
+				pow(cameraPos[2] - balls[i].pos[2], 2));
+			if(distance < PORTAL_SIZE){
+				cameraPos[0] = balls[((i + 1) % 2)].pos[0];
+				cameraPos[1] = balls[((i + 1) % 2)].pos[1];
+				cameraPos[2] = balls[((i + 1) % 2)].pos[2];
+				printf("%g, %g, %g\n", 
+						cameraPos[0], cameraPos[1], cameraPos[2]);
+				break;
+			}
+		}
+	}
 }
 
 void updatePosition(){
@@ -362,7 +388,7 @@ void shootPBall(int which){
 }
 
 void initWalls(){
-	setupWall(0,-5,5,-1,10,-2,2);
+	setupWall(0,-100,100,-1,100,-4,4);
 
 }
 
