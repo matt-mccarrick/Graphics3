@@ -2,7 +2,9 @@
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
+
 #include <stdio.h>
 
 #define WIN_DIM 800
@@ -10,6 +12,7 @@
 #define BULLET_SPEED 3.0
 #define MAX_PORTALS 2
 #define NUM_WALLS 1
+#define WALL_BORDER 1.5
 
 void init(void);
 void initWalls(void);
@@ -28,19 +31,21 @@ void movePBalls(void);
 void displayPBalls(void);
 void displayWalls(void);
 void buildWall(float,float,float,float,float,float);
-
+void setupWall(int, float,float,float,float,float,float);
+void checkShotCollision(void);
+void wallCollision(void);
 
 struct box{
 	float xMin,xMax, yMin, yMax, zMin, zMax; 
 };
 
-typedef box wall;
-
 struct ball{
 	GLfloat pos[3], velocity[3], color[3];
+	bool isPortal;
 	int exists;
 };
 
+typedef box wall;
 typedef ball pBall;
 
 float cameraPos[3];
@@ -49,7 +54,7 @@ float velocity;
 int keyMap[256];
 wall walls[NUM_WALLS];
 int lastX, lastY;
-int canJump;
+bool event;
 
 pBall balls[2];
 
@@ -93,10 +98,13 @@ void init(){
 	lastX = WIN_DIM / 2;
 	lastY = WIN_DIM / 2;
 	velocity = 0;
-	canJump = 1;
 
 	balls[0].exists = 0;
 	balls[1].exists = 0;
+	balls[0].isPortal = false;
+	balls[1].isPortal = false;
+	event = false;
+
 	
 	balls[0].color[0] = 0.0;
 	balls[0].color[1] = 0.0;
@@ -124,10 +132,11 @@ void display(){
 	moveCamera();
 	movePBalls();
 	displayPBalls();
-
+	
 	//Display the walls
 	displayWalls();
-
+	checkShotCollision();
+	wallCollision();
 	glutSwapBuffers();
 
 }
@@ -135,7 +144,7 @@ void display(){
 void movePBalls(){
 	int i;
 	for (i = 0; i < MAX_PORTALS; i++){
-		if(balls[i].exists){
+		if(balls[i].exists && !balls[i].isPortal){
 			balls[i].pos[0] += balls[i].velocity[0];
 			balls[i].pos[1] += balls[i].velocity[1];
 			balls[i].pos[2] += balls[i].velocity[2];
@@ -147,10 +156,8 @@ void moveCamera(){
 	glRotatef(cameraXRot, 1.0, 0.0, 0.0);
 	glRotatef(cameraYRot, 0.0, 1.0, 0.0);
 	
-	if(cameraPos[1] < 0){
+	if(cameraPos[1] < 0)
 		cameraPos[1] = 0;
-		canJump = 1;
-	}
 	glTranslatef(-cameraPos[0],-cameraPos[1],-cameraPos[2]);
 	
 }
@@ -173,10 +180,52 @@ void displayWalls(){
 	int i;
 	for (i = 0; i < NUM_WALLS; i++){
 		glColor3f(1.0,1.0,0.0);
-		buildWall(walls[i].xMin,walls[i].xMax,walls[i].yMin,walls[i].xMax,
+		buildWall(walls[i].xMin,walls[i].xMax,walls[i].yMin,walls[i].yMax,
 			walls[i].zMin, walls[i].zMax);
 	}
+}
 
+void checkShotCollision(){
+	int i;
+	int k;
+	for(i = 0; i < MAX_PORTALS; i ++){
+		for(k = 0; k < NUM_WALLS; k++){
+			if(!balls[i].isPortal){
+				bool xOk = balls[i].pos[0] > walls[k].xMin - WALL_BORDER
+					&& balls[i].pos[0] < walls[k].xMax + WALL_BORDER;
+				bool yOk = balls[i].pos[1] > walls[k].yMin - WALL_BORDER
+					&& balls[i].pos[1] < walls[k].yMax + WALL_BORDER;
+				bool zOk = balls[i].pos[2] > walls[k].zMin - WALL_BORDER
+					&& balls[i].pos[2] < walls[k].zMax + WALL_BORDER;
+
+				if(xOk && yOk && zOk){
+					balls[i].isPortal = true;
+					printf("%g, %g, %g\n", 
+						balls[i].pos[0], balls[i].pos[1], balls[i].pos[2]);
+				}
+			}
+		}
+	}	
+}
+
+void wallCollision(){
+	int k;
+	for(k = 0; k < NUM_WALLS; k++){
+		bool xOk = cameraPos[0] > walls[k].xMin - WALL_BORDER
+			&& cameraPos[0] < walls[k].xMax + WALL_BORDER;
+		bool yOk = cameraPos[1] > walls[k].yMin - WALL_BORDER
+			&& cameraPos[1] < walls[k].yMax + WALL_BORDER;
+		bool zOk = cameraPos[2] > walls[k].zMin - WALL_BORDER
+			&& cameraPos[2] < walls[k].zMax + WALL_BORDER;
+
+		if(xOk && yOk && zOk){
+			printf("%g, %g, %g\n", 
+						cameraPos[0], cameraPos[1], cameraPos[2]);
+			event = true;
+		}
+		
+	}
+	
 }
 
 void updatePosition(){
@@ -230,10 +279,7 @@ void keyCheck(){
 		cameraPos[1] -= 1;
 	}
 	if(keyMap[' '] == 1){
-		if(canJump){
-			velocity += 2.0;
-			canJump = 0;
-		}
+		velocity = 1.0;
 	}
 }
 
@@ -282,10 +328,12 @@ void activeMouseFunction(int button, int state, int x, int y){
 	if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
 		shootPBall(0);
 		balls[0].exists = 1;
+		balls[0].isPortal = false;
 	}
 	if(button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN){
 		shootPBall(1);
 		balls[1].exists = 1;
+		balls[1].isPortal = false;
 	}
 }
 
@@ -314,12 +362,17 @@ void shootPBall(int which){
 }
 
 void initWalls(){
-	walls[0].xMin = -5;
-	walls[0].xMax = 5;
-	walls[0].yMin = 0;
-	walls[0].yMax = 10;
-	walls[0].zMin = -1;
-	walls[0].zMax = 1;
+	setupWall(0,-5,5,-1,10,-2,2);
+
+}
+
+void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
+	walls[which].xMin = xMin;
+	walls[which].xMax = xMax;
+	walls[which].yMin = yMin;
+	walls[which].yMax = yMax;
+	walls[which].zMin = zMin;
+	walls[which].zMax = zMax;
 }
 
 void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
