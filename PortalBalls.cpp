@@ -132,16 +132,19 @@ void display(){
 	glLoadIdentity();
 	
 	keyCheck();
+	checkShotCollision();
+	wallCollision();
+	portalCollision();
+
 	updatePosition();
 	moveCamera();
+
 	movePBalls();
 	displayPBalls();
 	
 	//Display the walls
 	displayWalls();
-	checkShotCollision();
-	wallCollision();
-	portalCollision();
+	
 	glutSwapBuffers();
 
 }
@@ -164,6 +167,8 @@ void moveCamera(){
 	if(cameraPos[1] < 0)
 		cameraPos[1] = 0;
 	glTranslatef(-cameraPos[0],-cameraPos[1],-cameraPos[2]);
+	//if(inPortal[0] || inPortal[1])
+		//printf("%g, %g, %g\n", cameraPos[0], cameraPos[1], cameraPos[2]);
 	
 }
 
@@ -208,9 +213,6 @@ void checkShotCollision(){
 
 				if(xOk && yOk && zOk){
 					balls[i].isPortal = true;
-					
-					printf("%g, %g, %g\n", 
-						balls[i].pos[0], balls[i].pos[1], balls[i].pos[2]);
 				}
 			}		
 		}
@@ -253,8 +255,7 @@ void portalCollision(){
 					inPortal[i] = false;
 				}
 
-				printf("%g, %g, %g\n", 
-						cameraPos[0], cameraPos[1], cameraPos[2]);
+
 				break;
 			}
 
@@ -265,8 +266,11 @@ void portalCollision(){
 }
 
 void updatePosition(){
-	velocity += GRAVITY;
-	cameraPos[1] += velocity;
+	if(cameraPos[1] >= 0){
+		velocity += GRAVITY;
+		cameraPos[1] += velocity;
+	}else
+		velocity = 0;
 }
 
 void reshape(int width, int height){
