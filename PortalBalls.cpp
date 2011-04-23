@@ -14,6 +14,8 @@
 #define NUM_WALLS 1
 #define WALL_BORDER 1.5
 #define PORTAL_SIZE 5.0
+#define dimwid 110
+#define dimhgt 228
 
 void init(void);
 void initWalls(void);
@@ -36,6 +38,7 @@ void setupWall(int, float,float,float,float,float,float);
 void checkShotCollision(void);
 void wallCollision(void);
 void portalCollision(void);
+void readWall(void);
 
 struct box{
 	float xMin,xMax, yMin, yMax, zMin, zMax; 
@@ -57,6 +60,7 @@ int keyMap[256];
 wall walls[NUM_WALLS];
 int lastX, lastY;
 bool event, inPortal[MAX_PORTALS];
+GLubyte texture[dimwid][dimhgt][3];
 
 pBall balls[2];
 
@@ -117,6 +121,21 @@ void init(){
 	balls[1].color[1] = 0.5;
 	balls[1].color[2] = 0.0;
 	
+	readWall();
+	//glEnable(GL_TEXTURE_2D);
+
+	// specify combination of texture with surface color
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+	// specify texture parameters - wrapping/filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	// specify texture image parameters
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimhgt,dimwid, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
+
 	initWalls();
 
 	int i;
@@ -386,6 +405,12 @@ void shootPBall(int which){
 	shotInc[1] = - (float)(sin(xRotRad));
 	shotInc[2] = - (float)(cos(yRotRad));
 
+	cameraPos[0] += float(sin(yRotRad)) * 0.75;
+	cameraPos[2] -= float(cos(yRotRad)) * 0.75;
+	cameraPos[1] -= float(sin(xRotRad)) * 0.75;
+
+
+
 	shotPos[0] = cameraPos[0] + shotInc[0];
 	shotPos[1] = cameraPos[1] + shotInc[1];
 	shotPos[2] = cameraPos[2] + shotInc[2];
@@ -397,13 +422,13 @@ void shootPBall(int which){
 	balls[which].velocity[0] = 
 		BULLET_SPEED * (shotInc[0]);
 	balls[which].velocity[1] = 
-		BULLET_SPEED * (shotInc[1]);
+		BULLET_SPEED *(shotInc[1]);
 	balls[which].velocity[2] = 
 		BULLET_SPEED * (shotInc[2]);
 }
 
 void initWalls(){
-	setupWall(0,-100,100,-1,100,-4,4);
+	setupWall(0, 0,110, -1, 227,-1,227);
 
 }
 
@@ -417,41 +442,91 @@ void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin
 }
 
 void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
+	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 		//face 1
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMin,yMax,zMin);
+		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMax,zMax);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMax,yMax,zMax);
+		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMax,yMax,zMin);
 		
 		//face 2
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMin,yMax,zMin);
+		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMax,yMax,zMin);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMax,yMin,zMin);
+		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMin,zMin);
 		
 		//face 3
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMin,yMax,zMin);
+		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMin,yMax,zMax);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMin,zMax);
+		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMin,zMin);
 
 		//face 4
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMin,yMax,zMax);
+		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMax,yMax,zMax);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMax,yMin,zMax);
+		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMin,zMax);
 		
 		//face 5		
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMax,yMax,zMax);
+		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMax,yMax,zMin);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMax,yMin,zMin);
+		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMax,yMin,zMax);
 		
 		//face 6
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMax,yMin,zMin);
+		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMax,yMin,zMax);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMin,zMax);
+		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMin,zMin);
 	glEnd();
+	glDisable(GL_TEXTURE_2D);
+}
+
+// digitally scans-in dim x dim RGB image data
+void readWall(void)
+{
+	int i, j;
+	unsigned char data[3];
+	FILE *fp_dat;
+	char filename[256] = "portalwall.dat";
+
+	if ((fp_dat = fopen (filename, "rb")) == NULL) {
+		printf ("file not found\n");
+		abort();
+	}
+
+	for (i=0; i< dimwid; i++) {
+		for (j=0; j<dimhgt; j++) {
+			fread (data, sizeof(unsigned char), 3, fp_dat);
+			texture[i][j][0] = (GLubyte) data[0];
+			texture[i][j][1] = (GLubyte) data[1];
+			texture[i][j][2] = (GLubyte) data[2];
+		}
+	}
+	
 }

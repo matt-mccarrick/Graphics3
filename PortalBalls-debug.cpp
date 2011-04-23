@@ -125,7 +125,7 @@ void init(){
 	//glEnable(GL_TEXTURE_2D);
 
 	// specify combination of texture with surface color
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE); 
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	// specify texture parameters - wrapping/filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -134,8 +134,8 @@ void init(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	// specify texture image parameters
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimwid, dimhgt, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
-	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimhgt,dimwid, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
+
 	initWalls();
 
 	int i;
@@ -420,11 +420,11 @@ void shootPBall(int which){
 	balls[which].pos[2] = shotPos[2];
 
 	balls[which].velocity[0] = 
-		BULLET_SPEED * (-1*(shotPos[0] - (shotPos[0] + shotInc[0])));
+		BULLET_SPEED * (shotInc[0]);
 	balls[which].velocity[1] = 
-		BULLET_SPEED * (-1*(shotPos[1] - (shotPos[1] + shotInc[1])));
+		BULLET_SPEED *(shotInc[1]);
 	balls[which].velocity[2] = 
-		BULLET_SPEED * (-1*(shotPos[2] - (shotPos[2] + shotInc[2])));
+		BULLET_SPEED * (shotInc[2]);
 }
 
 void initWalls(){
@@ -515,15 +515,9 @@ void readWall(void)
 	FILE *fp_dat;
 	char filename[256] = "portalwall.dat";
 
-	//printf ("enter datafile name: ");
-	//scanf ("%s", filename);
-
 	if ((fp_dat = fopen (filename, "rb")) == NULL) {
 		printf ("file not found\n");
 		abort();
-	}
-	else{
-		printf("file found\n");
 	}
 
 	for (i=0; i< dimwid; i++) {
@@ -534,4 +528,5 @@ void readWall(void)
 			texture[i][j][2] = (GLubyte) data[2];
 		}
 	}
+	
 }
