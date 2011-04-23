@@ -10,12 +10,12 @@
 #define GRAVITY -0.0981
 #define BULLET_SPEED 3.0
 #define MAX_PORTALS 2
-#define NUM_WALLS 1
 #define WALL_BALL_BORDER 3.0
 #define WALL_PLAYER_BORDER 1.0
+#define NUM_WALLS 20
 #define PORTAL_SIZE 5.0
-#define dimwid 110
-#define dimhgt 228
+#define dimwid 216
+#define dimhgt 286
 
 void init(void);
 void initWalls(void);
@@ -134,7 +134,7 @@ void init(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	// specify texture image parameters
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimhgt,dimwid, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimwid,dimhgt, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
 
 	initWalls();
 
@@ -485,8 +485,40 @@ void shootPBall(int which){
 }
 
 void initWalls(){
-	setupWall(0, -50,50, -1, 100,-100,1);
 
+	int i;
+	
+	int width=dimwid, height=dimhgt, depth=4;	
+	int xposinit=-50, yposinit=-10, zposinit=-500;
+	int xpos=-50, ypos=-10, zpos=-500;
+	
+	// Four main walls
+	for(i = 0; i < 4; i++){
+		setupWall(i, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth);		
+	}	
+	zpos += (4 * width);
+	for(i = 0; i < 4; i++){
+		setupWall(i + 4, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth);		
+	}
+	zpos = zposinit;
+	for(i = 0 ; i < 4; i++){
+		setupWall(i + 8, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width));	
+	}
+	xpos += (4 * width);
+	for(i = 0 ; i < 4; i++){
+		setupWall(i + 12, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width));	
+	}	
+	xpos = xposinit;
+	
+	// Floor and Ceiling
+	setupWall(16, xpos, xpos + (4*width), -12, -4, zpos, zpos + (4*width));
+	setupWall(17, xpos, xpos + (4*width), height -12, height, zpos, zpos + (4*width));
+	
+	// Pillar
+	setupWall(18, xpos + width, xpos + width + 50, ypos, ypos + height, zpos + width, zpos + width + 50);
+	
+	// Wall within room
+	setupWall(19, xpos + width, xpos + width + 4, ypos, ypos + height, zpos + width*2, zpos + width*3);
 }
 
 void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
@@ -501,47 +533,48 @@ void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin
 void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
 	glEnable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
-		//face 1
-		glTexCoord2f(1.0, 1.0);
-		glVertex3f(xMin,yMax,zMin);
-		glTexCoord2f(0.0, 1.0);
-		glVertex3f(xMin,yMax,zMax);
+		//face 1		
 		glTexCoord2f(0.0, 0.0);
+		glVertex3f(xMin,yMax,zMin);
+		glTexCoord2f(0.0, 0.1);
+		glVertex3f(xMin,yMax,zMax);
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMax,yMax,zMax);
 		glTexCoord2f(1.0, 0.0);
-		glVertex3f(xMax,yMax,zMin);
+		glVertex3f(xMax,yMax,zMin);		
 		
 		//face 2
-		glTexCoord2f(1.0, 1.0);
-		glVertex3f(xMin,yMax,zMin);
-		glTexCoord2f(1.0, 0.0);
-		glVertex3f(xMax,yMax,zMin);
-		glTexCoord2f(0.0, 0.0);
-		glVertex3f(xMax,yMin,zMin);
 		glTexCoord2f(0.0, 1.0);
+		glVertex3f(xMin,yMax,zMin);
+		glTexCoord2f(1.0, 1.0);
+		glVertex3f(xMax,yMax,zMin);
+		glTexCoord2f(1.0, 0.0);
+		glVertex3f(xMax,yMin,zMin);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMin,zMin);
 		
-		//face 3
-		glTexCoord2f(1.0, 1.0);
-		glVertex3f(xMin,yMax,zMin);
+		//face 3		
 		glTexCoord2f(1.0, 0.0);
+		glVertex3f(xMin,yMax,zMin);
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMin,yMax,zMax);
-		glTexCoord2f(0.0, 0.0);
-		glVertex3f(xMin,yMin,zMax);
 		glTexCoord2f(0.0, 1.0);
+		glVertex3f(xMin,yMin,zMax);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMin,zMin);
+		
 
-		//face 4
-		glTexCoord2f(1.0, 1.0);
-		glVertex3f(xMin,yMax,zMax);
-		glTexCoord2f(1.0, 0.0);
-		glVertex3f(xMax,yMax,zMax);
-		glTexCoord2f(0.0, 0.0);
-		glVertex3f(xMax,yMin,zMax);
+		//face 4	
 		glTexCoord2f(0.0, 1.0);
+		glVertex3f(xMin,yMax,zMax);
+		glTexCoord2f(1.0, 1.0);
+		glVertex3f(xMax,yMax,zMax);
+		glTexCoord2f(1.0, 0.0);
+		glVertex3f(xMax,yMin,zMax);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMin,zMax);
 		
-		//face 5		
+		//face 5			
 		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMax,yMax,zMax);
 		glTexCoord2f(1.0, 0.0);
@@ -549,19 +582,21 @@ void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax
 		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMax,yMin,zMin);
 		glTexCoord2f(0.0, 1.0);
-		glVertex3f(xMax,yMin,zMax);
+		glVertex3f(xMax,yMin,zMax);		
 		
 		//face 6
-		glTexCoord2f(1.0, 1.0);
-		glVertex3f(xMax,yMin,zMin);
 		glTexCoord2f(1.0, 0.0);
+		glVertex3f(xMax,yMin,zMin);
+		glTexCoord2f(1.0, 0.1);
 		glVertex3f(xMax,yMin,zMax);
-		glTexCoord2f(0.0, 0.0);
+		glTexCoord2f(0.0, 1.1);
 		glVertex3f(xMin,yMin,zMax);
 		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMin,zMin);
+		
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
+	
 }
 
 // digitally scans-in dim x dim RGB image data
@@ -570,7 +605,7 @@ void readWall(void)
 	int i, j;
 	unsigned char data[3];
 	FILE *fp_dat;
-	char filename[256] = "portalwall.dat";
+	char filename[256] = "newwall.dat";
 
 	if ((fp_dat = fopen (filename, "rb")) == NULL) {
 		printf ("file not found\n");
