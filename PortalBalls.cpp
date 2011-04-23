@@ -386,12 +386,6 @@ void shootPBall(int which){
 	shotInc[1] = - (float)(sin(xRotRad));
 	shotInc[2] = - (float)(cos(yRotRad));
 
-	cameraPos[0] += float(sin(yRotRad)) * 0.75;
-	cameraPos[2] -= float(cos(yRotRad)) * 0.75;
-	cameraPos[1] -= float(sin(xRotRad)) * 0.75;
-
-
-
 	shotPos[0] = cameraPos[0] + shotInc[0];
 	shotPos[1] = cameraPos[1] + shotInc[1];
 	shotPos[2] = cameraPos[2] + shotInc[2];
@@ -401,11 +395,11 @@ void shootPBall(int which){
 	balls[which].pos[2] = shotPos[2];
 
 	balls[which].velocity[0] = 
-		BULLET_SPEED * (-1*(shotPos[0] - (shotPos[0] + shotInc[0])));
+		BULLET_SPEED * (shotInc[0]);
 	balls[which].velocity[1] = 
-		BULLET_SPEED * (-1*(shotPos[1] - (shotPos[1] + shotInc[1])));
+		BULLET_SPEED * (shotInc[1]);
 	balls[which].velocity[2] = 
-		BULLET_SPEED * (-1*(shotPos[2] - (shotPos[2] + shotInc[2])));
+		BULLET_SPEED * (shotInc[2]);
 }
 
 void initWalls(){
