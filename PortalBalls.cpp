@@ -4,7 +4,6 @@
 #include <GL/glu.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
-
 #include <stdio.h>
 
 #define WIN_DIM 800
@@ -12,7 +11,8 @@
 #define BULLET_SPEED 3.0
 #define MAX_PORTALS 2
 #define NUM_WALLS 1
-#define WALL_BORDER 1.5
+#define WALL_BALL_BORDER 3.0
+#define WALL_PLAYER_BORDER 1.0
 #define PORTAL_SIZE 5.0
 #define dimwid 110
 #define dimhgt 228
@@ -36,7 +36,7 @@ void displayWalls(void);
 void buildWall(float,float,float,float,float,float);
 void setupWall(int, float,float,float,float,float,float);
 void checkShotCollision(void);
-void wallCollision(void);
+bool wallCollision(int, float);
 void portalCollision(void);
 void readWall(void);
 
@@ -59,7 +59,7 @@ float velocity;
 int keyMap[256];
 wall walls[NUM_WALLS];
 int lastX, lastY;
-bool event, inPortal[MAX_PORTALS];
+bool wallColl, inPortal[MAX_PORTALS];
 GLubyte texture[dimwid][dimhgt][3];
 
 pBall balls[2];
@@ -96,9 +96,9 @@ void init(){
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	cameraPos[0] = 0.0f;
+	cameraPos[0] = 5.0f;
 	cameraPos[1] = 0.0f;
-	cameraPos[2] = 10.0f;
+	cameraPos[2] = 40.0f;
 	cameraXRot = 0;
 	cameraYRot = 0;
 	lastX = WIN_DIM / 2;
@@ -109,7 +109,7 @@ void init(){
 	balls[1].exists = 0;
 	balls[0].isPortal = false;
 	balls[1].isPortal = false;
-	event = false;
+	wallColl = false;
 	inPortal[0] = false;
 	inPortal[1] = false;
 
@@ -152,7 +152,7 @@ void display(){
 	
 	keyCheck();
 	checkShotCollision();
-	wallCollision();
+	//wallCollision();
 	portalCollision();
 
 	updatePosition();
@@ -223,12 +223,12 @@ void checkShotCollision(){
 	for(i = 0; i < MAX_PORTALS; i ++){
 		for(k = 0; k < NUM_WALLS; k++){
 			if(!balls[i].isPortal){
-				bool xOk = balls[i].pos[0] > walls[k].xMin - WALL_BORDER
-					&& balls[i].pos[0] < walls[k].xMax + WALL_BORDER;
-				bool yOk = balls[i].pos[1] > walls[k].yMin - WALL_BORDER
-					&& balls[i].pos[1] < walls[k].yMax + WALL_BORDER;
-				bool zOk = balls[i].pos[2] > walls[k].zMin - WALL_BORDER
-					&& balls[i].pos[2] < walls[k].zMax + WALL_BORDER;
+				bool xOk = balls[i].pos[0] > walls[k].xMin - WALL_BALL_BORDER
+					&& balls[i].pos[0] < walls[k].xMax + WALL_BALL_BORDER;
+				bool yOk = balls[i].pos[1] > walls[k].yMin - WALL_BALL_BORDER
+					&& balls[i].pos[1] < walls[k].yMax + WALL_BALL_BORDER;
+				bool zOk = balls[i].pos[2] > walls[k].zMin - WALL_BALL_BORDER
+					&& balls[i].pos[2] < walls[k].zMax + WALL_BALL_BORDER;
 
 				if(xOk && yOk && zOk){
 					balls[i].isPortal = true;
@@ -241,21 +241,59 @@ void checkShotCollision(){
 void wallCollision(){
 	int k;
 	for(k = 0; k < NUM_WALLS; k++){
-		bool xOk = cameraPos[0] > walls[k].xMin - WALL_BORDER
-			&& cameraPos[0] < walls[k].xMax + WALL_BORDER;
-		bool yOk = cameraPos[1] > walls[k].yMin - WALL_BORDER
-			&& cameraPos[1] < walls[k].yMax + WALL_BORDER;
-		bool zOk = cameraPos[2] > walls[k].zMin - WALL_BORDER
-			&& cameraPos[2] < walls[k].zMax + WALL_BORDER;
+		bool xOk = cameraPos[0] > walls[k].xMin - WALL_BALL_BORDER
+			&& cameraPos[0] < walls[k].xMax + WALL_BALL_BORDER;
+		bool yOk = cameraPos[1] > walls[k].yMin - WALL_BALL_BORDER
+			&& cameraPos[1] < walls[k].yMax + WALL_BALL_BORDER;
+		bool zOk = cameraPos[2] > walls[k].zMin - WALL_BALL_BORDER
+			&& cameraPos[2] < walls[k].zMax + WALL_BALL_BORDER;
 
 		if(xOk && yOk && zOk){
 			//printf("%g, %g, %g\n", 
 			//			cameraPos[0], cameraPos[1], cameraPos[2]);
-			event = true;
-		}
-		
+			wallColl = true;
+		}	
 	}
-	
+}
+
+bool wallCollision(int which, float increment){
+	int k;
+	for(k = 0; k < NUM_WALLS; k++){
+		switch(which){
+			case 0:
+				if(cameraPos[0] + increment > walls[k].xMin - WALL_PLAYER_BORDER && 
+					cameraPos[0] + increment < walls[k].xMax + WALL_PLAYER_BORDER && 
+					cameraPos[1] > walls[k].yMin - WALL_PLAYER_BORDER && 
+					cameraPos[1] < walls[k].yMax + WALL_PLAYER_BORDER && 
+					cameraPos[2] > walls[k].zMin - WALL_PLAYER_BORDER && 
+					cameraPos[2] < walls[k].zMax + WALL_PLAYER_BORDER){
+					return true;
+				}
+				break;
+			case 1:
+				if(cameraPos[0] + increment > walls[k].xMin - WALL_PLAYER_BORDER && 
+					cameraPos[0] + increment < walls[k].xMax + WALL_PLAYER_BORDER && 
+					cameraPos[1] + increment > walls[k].yMin - WALL_PLAYER_BORDER && 
+					cameraPos[1] + increment < walls[k].yMax + WALL_PLAYER_BORDER && 
+					cameraPos[2] > walls[k].zMin - WALL_PLAYER_BORDER && 
+					cameraPos[2] < walls[k].zMax + WALL_PLAYER_BORDER){
+					return true;
+				}
+				break;
+			case 2:
+				if(cameraPos[0] > walls[k].xMin - WALL_PLAYER_BORDER && 
+					cameraPos[0] < walls[k].xMax + WALL_PLAYER_BORDER && 
+					cameraPos[1] > walls[k].yMin - WALL_PLAYER_BORDER && 
+					cameraPos[1] < walls[k].yMax + WALL_PLAYER_BORDER && 
+					cameraPos[2] + increment > walls[k].zMin - WALL_PLAYER_BORDER && 
+					cameraPos[2] + increment < walls[k].zMax + WALL_PLAYER_BORDER){
+					return true;
+				}
+				break;
+
+		}
+	}
+	return false;
 }
 
 void portalCollision(){
@@ -285,7 +323,7 @@ void portalCollision(){
 }
 
 void updatePosition(){
-	if(cameraPos[1] >= 0){
+	if(cameraPos[1] >= 0 && !wallCollision(1,velocity)){
 		velocity += GRAVITY;
 		cameraPos[1] += velocity;
 	}else
@@ -309,27 +347,52 @@ void keyCheck(){
 
 	if(keyMap['a'] == 1){
 		yRotRad = (cameraYRot / 180 * 3.141592654f);
-		cameraPos[0] -= float(cos(yRotRad)) * 0.75;
-		cameraPos[2] -= float(sin(yRotRad)) * 0.75;
+		float xInc = -float(cos(yRotRad)) * 0.75;
+		float zInc = -float(sin(yRotRad)) * 0.75;
+
+		if(!wallCollision(0,xInc))
+			cameraPos[0] += xInc;
+		if(!wallCollision(2, zInc))
+			cameraPos[2] += zInc;
 	}
 	if(keyMap['d'] == 1){
 		yRotRad = (cameraYRot / 180 * 3.141592654f);
-		cameraPos[0] += float(cos(yRotRad)) * 0.75;
-		cameraPos[2] += float(sin(yRotRad)) * 0.75;
+		float xInc = float(cos(yRotRad)) * 0.75;
+		float zInc = float(sin(yRotRad)) * 0.75;
+
+		if(!wallCollision(0,xInc))
+			cameraPos[0] += xInc;
+		if(!wallCollision(2, zInc))
+			cameraPos[2] += zInc;
 	}
 	if(keyMap['w'] == 1){
 		yRotRad = (cameraYRot / 180 * 3.141592654f);
-		xRotRad = (cameraXRot / 180 * 3.141592654f); 
-		cameraPos[0] += float(sin(yRotRad)) * 0.75;
-		cameraPos[2] -= float(cos(yRotRad)) * 0.75;
-		cameraPos[1] -= float(sin(xRotRad)) * 0.75;
+		xRotRad = (cameraXRot / 180 * 3.141592654f);
+		float xInc = float(sin(yRotRad)) * 0.75;
+		float yInc = -float(sin(xRotRad)) * 0.75;
+		float zInc = -float(cos(yRotRad)) * 0.75;
+
+		if(!wallCollision(0,xInc))
+			cameraPos[0] += xInc;
+		if(!wallCollision(1,yInc))
+			cameraPos[1] += yInc;
+		if(!wallCollision(2,zInc))
+			cameraPos[2] += zInc;
 	}
 	if(keyMap['s'] == 1){
 		yRotRad = (cameraYRot / 180 * 3.141592654f);
 		xRotRad = (cameraXRot / 180 * 3.141592654f); 
-		cameraPos[0] -= float(sin(yRotRad)) * 0.75;
-		cameraPos[2] += float(cos(yRotRad)) * 0.75;
-		cameraPos[1] += float(sin(xRotRad)) * 0.75;
+		float xInc = -float(sin(yRotRad)) * 0.75;
+		float yInc = float(sin(xRotRad)) * 0.75;
+		float zInc = float(cos(yRotRad)) * 0.75;
+
+		if(!wallCollision(0,xInc))
+			cameraPos[0] += xInc;
+		if(!wallCollision(1,yInc))
+			cameraPos[1] += yInc;
+		if(!wallCollision(2,zInc))
+			cameraPos[2] += zInc;
+
 	}
 	if(keyMap['r'] == 1){
 		cameraPos[1] += 1;
@@ -405,12 +468,6 @@ void shootPBall(int which){
 	shotInc[1] = - (float)(sin(xRotRad));
 	shotInc[2] = - (float)(cos(yRotRad));
 
-	cameraPos[0] += float(sin(yRotRad)) * 0.75;
-	cameraPos[2] -= float(cos(yRotRad)) * 0.75;
-	cameraPos[1] -= float(sin(xRotRad)) * 0.75;
-
-
-
 	shotPos[0] = cameraPos[0] + shotInc[0];
 	shotPos[1] = cameraPos[1] + shotInc[1];
 	shotPos[2] = cameraPos[2] + shotInc[2];
@@ -428,7 +485,7 @@ void shootPBall(int which){
 }
 
 void initWalls(){
-	setupWall(0, 0,110, -1, 227,-1,227);
+	setupWall(0, -50,50, -1, 100,-100,1);
 
 }
 
