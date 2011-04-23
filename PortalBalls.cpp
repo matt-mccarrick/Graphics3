@@ -56,7 +56,7 @@ float velocity;
 int keyMap[256];
 wall walls[NUM_WALLS];
 int lastX, lastY;
-bool event;
+bool event, inPortal[MAX_PORTALS];
 
 pBall balls[2];
 
@@ -106,6 +106,8 @@ void init(){
 	balls[0].isPortal = false;
 	balls[1].isPortal = false;
 	event = false;
+	inPortal[0] = false;
+	inPortal[1] = false;
 
 	
 	balls[0].color[0] = 0.0;
@@ -210,7 +212,7 @@ void checkShotCollision(){
 					printf("%g, %g, %g\n", 
 						balls[i].pos[0], balls[i].pos[1], balls[i].pos[2]);
 				}
-			}
+			}		
 		}
 	}	
 }
@@ -238,20 +240,28 @@ void wallCollision(){
 void portalCollision(){
 	int i;
 	for(i = 0; i < MAX_PORTALS; i++){
-		if(balls[i].isPortal){
+		if(balls[i].isPortal && balls[((i + 1) % 2)].isPortal){
 			float distance = sqrt(pow(cameraPos[0] - balls[i].pos[0], 2) + 
 				pow(cameraPos[1] - balls[i].pos[1], 2) + 
 				pow(cameraPos[2] - balls[i].pos[2], 2));
 			if(distance < PORTAL_SIZE){
-				cameraPos[0] = balls[((i + 1) % 2)].pos[0];
-				cameraPos[1] = balls[((i + 1) % 2)].pos[1];
-				cameraPos[2] = balls[((i + 1) % 2)].pos[2];
+				if(!inPortal[i]){
+					cameraPos[0] = balls[((i + 1) % 2)].pos[0];
+					cameraPos[1] = balls[((i + 1) % 2)].pos[1];
+					cameraPos[2] = balls[((i + 1) % 2)].pos[2];
+					inPortal[((i + 1) % 2)] = true;
+					inPortal[i] = false;
+				}
+
 				printf("%g, %g, %g\n", 
 						cameraPos[0], cameraPos[1], cameraPos[2]);
 				break;
 			}
+
+		inPortal[i] = false;
 		}
 	}
+
 }
 
 void updatePosition(){
@@ -372,6 +382,12 @@ void shootPBall(int which){
 	shotInc[1] = - (float)(sin(xRotRad));
 	shotInc[2] = - (float)(cos(yRotRad));
 
+	cameraPos[0] += float(sin(yRotRad)) * 0.75;
+	cameraPos[2] -= float(cos(yRotRad)) * 0.75;
+	cameraPos[1] -= float(sin(xRotRad)) * 0.75;
+
+
+
 	shotPos[0] = cameraPos[0] + shotInc[0];
 	shotPos[1] = cameraPos[1] + shotInc[1];
 	shotPos[2] = cameraPos[2] + shotInc[2];
@@ -379,6 +395,7 @@ void shootPBall(int which){
 	balls[which].pos[0] = shotPos[0];
 	balls[which].pos[1] = shotPos[1];
 	balls[which].pos[2] = shotPos[2];
+
 	balls[which].velocity[0] = 
 		BULLET_SPEED * (-1*(shotPos[0] - (shotPos[0] + shotInc[0])));
 	balls[which].velocity[1] = 
