@@ -17,6 +17,8 @@
 #define dimwid 216
 #define dimhgt 286
 
+enum WallType { Textured, Solid ,Gray};
+
 void init(void);
 void initWalls(void);
 void display(void);
@@ -34,14 +36,17 @@ void movePBalls(void);
 void displayPBalls(void);
 void displayWalls(void);
 void buildWall(float,float,float,float,float,float);
-void setupWall(int, float,float,float,float,float,float);
+void setupWall(int, float,float,float,float,float,float,WallType);
 void checkShotCollision(void);
 bool wallCollision(int, float);
 void portalCollision(void);
 void readWall(void);
 
+
+
 struct box{
-	float xMin,xMax, yMin, yMax, zMin, zMax; 
+	float xMin,xMax, yMin, yMax, zMin, zMax;
+	WallType type;
 };
 
 struct ball{
@@ -214,9 +219,16 @@ void displayPBalls(){
 void displayWalls(){
 	int i;
 	for (i = 0; i < NUM_WALLS; i++){
-		glColor3f(1.0,1.0,0.0);
+		if(walls[i].type == Textured)
+			glEnable(GL_TEXTURE_2D);
+		else if(walls[i].type == Gray)
+			glColor3f(0.89,0.89,0.89);
+		else
+			glColor3f(1.0,1.0,0.0);
 		buildWall(walls[i].xMin,walls[i].xMax,walls[i].yMin,walls[i].yMax,
 			walls[i].zMin, walls[i].zMax);
+		if(walls[i].type == Textured)
+			glDisable(GL_TEXTURE_2D);
 	}
 }
 
@@ -504,56 +516,58 @@ void initWalls(){
 	
 	// Four main walls
 	for(i = 0; i < 4; i++){
-		setupWall(i, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth);		
+		setupWall(i, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth, Textured);		
 	}	
 	zpos += (4 * width);
 	for(i = 0; i < 4; i++){
-		setupWall(i + 4, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth);		
+		setupWall(i + 4, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth, Textured);		
 	}
 	zpos = zposinit;
 	for(i = 0 ; i < 4; i++){
-		setupWall(i + 8, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width));	
+		setupWall(i + 8, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width), Textured);	
 	}
 	xpos += (4 * width);
 	for(i = 0 ; i < 4; i++){
-		setupWall(i + 12, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width));	
+		setupWall(i + 12, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width), Textured);	
 	}	
 	xpos = xposinit;
 	
 	// Floor and Ceiling
-	setupWall(16, xpos, xpos + (4*width), -12, -4, zpos, zpos + (4*width));
-	setupWall(17, xpos, xpos + (4*width), height -12, height, zpos, zpos + (4*width));
+	setupWall(16, xpos, xpos + (4*width), -12, -4, zpos, zpos + (4*width), Textured);
+	setupWall(17, xpos, xpos + (4*width), height -12, height, zpos, zpos + (4*width), Textured);
 	
 	// Pillar
-	setupWall(18, xpos + width, xpos + width + 50, ypos, ypos + height, zpos + width, zpos + width + 50);
+	setupWall(18, xpos + width, xpos + width + 50, ypos, ypos + height, zpos + width, zpos + width + 50, Textured);
 	
 	// Wall within room
-	setupWall(19, xpos + width, xpos + width + 4, ypos, ypos + height, zpos + width*2, zpos + width*3);
+	setupWall(19, xpos + width, xpos + width + 4, ypos, ypos + height, zpos + width*2, zpos + width*3, Textured);
 }
 
-void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
+void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin,float zMax, WallType type){
 	walls[which].xMin = xMin;
 	walls[which].xMax = xMax;
 	walls[which].yMin = yMin;
 	walls[which].yMax = yMax;
 	walls[which].zMin = zMin;
 	walls[which].zMax = zMax;
+	walls[which].type = type;
 }
 
 void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax){
-	glEnable(GL_TEXTURE_2D);
+	
 	glBegin(GL_QUADS);
-		//face 1		
+	
+		//face 1 top, floor	
 		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMax,zMin);
-		glTexCoord2f(0.0, 0.1);
+		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMax,zMax);
 		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMax,yMax,zMax);
 		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMax,yMax,zMin);		
 		
-		//face 2
+		//face 2, back
 		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMax,zMin);
 		glTexCoord2f(1.0, 1.0);
@@ -563,18 +577,17 @@ void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax
 		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMin,zMin);
 		
-		//face 3		
-		glTexCoord2f(1.0, 0.0);
+		//face 3, right		
+		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMax,zMin);
 		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMin,yMax,zMax);
-		glTexCoord2f(0.0, 1.0);
+		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMin,yMin,zMax);
 		glTexCoord2f(0.0, 0.0);
-		glVertex3f(xMin,yMin,zMin);
-		
+		glVertex3f(xMin,yMin,zMin);		
 
-		//face 4	
+		//face 4, front	
 		glTexCoord2f(0.0, 1.0);
 		glVertex3f(xMin,yMax,zMax);
 		glTexCoord2f(1.0, 1.0);
@@ -584,29 +597,27 @@ void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax
 		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMin,zMax);
 		
-		//face 5			
-		glTexCoord2f(1.0, 1.0);
-		glVertex3f(xMax,yMax,zMax);
-		glTexCoord2f(1.0, 0.0);
-		glVertex3f(xMax,yMax,zMin);
-		glTexCoord2f(0.0, 0.0);
-		glVertex3f(xMax,yMin,zMin);
+		//face 5, left			
 		glTexCoord2f(0.0, 1.0);
+		glVertex3f(xMax,yMax,zMax);
+		glTexCoord2f(1.0, 1.0);
+		glVertex3f(xMax,yMax,zMin);
+		glTexCoord2f(1.0, 0.0);
+		glVertex3f(xMax,yMin,zMin);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMax,yMin,zMax);		
 		
-		//face 6
+		//face 6, bottom, floor
 		glTexCoord2f(1.0, 0.0);
 		glVertex3f(xMax,yMin,zMin);
-		glTexCoord2f(1.0, 0.1);
+		glTexCoord2f(1.0, 1.0);
 		glVertex3f(xMax,yMin,zMax);
-		glTexCoord2f(0.0, 1.1);
-		glVertex3f(xMin,yMin,zMax);
 		glTexCoord2f(0.0, 1.0);
+		glVertex3f(xMin,yMin,zMax);
+		glTexCoord2f(0.0, 0.0);
 		glVertex3f(xMin,yMin,zMin);
 		
 	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	
 }
 
 // digitally scans-in dim x dim RGB image data
