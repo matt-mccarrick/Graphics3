@@ -40,9 +40,7 @@ void setupWall(int, float,float,float,float,float,float,WallType);
 void checkShotCollision(void);
 bool wallCollision(int, float);
 void portalCollision(void);
-void readWall(void);
-
-
+void readTextures();
 
 struct box{
 	float xMin,xMax, yMin, yMax, zMin, zMax;
@@ -65,7 +63,10 @@ int keyMap[256];
 wall walls[NUM_WALLS];
 int lastX, lastY;
 bool wallColl, inPortal[MAX_PORTALS], canJump;
-GLubyte texture[dimwid][dimhgt][3];
+
+GLubyte walltexture[dimwid][dimhgt][3];
+GLubyte blueball[216][286][3];
+GLubyte orangeball[216][286][3];
 
 pBall balls[2];
 
@@ -127,11 +128,15 @@ void init(){
 	balls[1].color[1] = 0.5;
 	balls[1].color[2] = 0.0;
 	
-	readWall();
+	readTextures();
+	//balltexture = LoadTexture( "bricks.dat", 256, 256 ); 
 	//glEnable(GL_TEXTURE_2D);
 
 	// specify combination of texture with surface color
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 
 	// specify texture parameters - wrapping/filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -140,7 +145,8 @@ void init(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	// specify texture image parameters
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimwid,dimhgt, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
+	
+	
 
 	initWalls();
 
@@ -209,7 +215,22 @@ void displayPBalls(){
 				glTranslatef(balls[i].pos[0], balls[i].pos[1], balls[i].pos[2]);
 				if(balls[i].isPortal)
 					glScalef(PORTAL_SIZE, PORTAL_SIZE, PORTAL_SIZE);
+				
+				glEnable(GL_TEXTURE_2D);
+					
+				if(i % 2 == 0)
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 216, 286, 0, GL_RGB, GL_UNSIGNED_BYTE, blueball);
+				else
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 216,286, 0, GL_RGB, GL_UNSIGNED_BYTE, orangeball);
+
+				glEnable(GL_TEXTURE_GEN_S);
+				glEnable(GL_TEXTURE_GEN_T);
+				
 				glutSolidSphere(1.0, 20.0, 20.0);
+				
+				glDisable(GL_TEXTURE_2D);
+				glDisable(GL_TEXTURE_GEN_S); 
+				glDisable(GL_TEXTURE_GEN_T);
 			glPopMatrix();
 		}
 	}
@@ -218,6 +239,7 @@ void displayPBalls(){
 
 void displayWalls(){
 	int i;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimwid,dimhgt, 0, GL_RGB, GL_UNSIGNED_BYTE, walltexture);
 	for (i = 0; i < NUM_WALLS; i++){
 		if(walls[i].type == Textured)
 			glEnable(GL_TEXTURE_2D);
@@ -621,14 +643,16 @@ void buildWall(float xMin,float xMax,float yMin,float yMax,float zMin,float zMax
 }
 
 // digitally scans-in dim x dim RGB image data
-void readWall(void)
+void readTextures()
 {
 	int i, j;
 	unsigned char data[3];
 	FILE *fp_dat;
-	char filename[256] = "newwall.dat";
+	char f1[256] = "newwall.dat";
+	char f2[256] = "blue.dat";
+	char f3[256] = "orange.dat";
 
-	if ((fp_dat = fopen (filename, "rb")) == NULL) {
+	if ((fp_dat = fopen (f1, "rb")) == NULL) {
 		printf ("file not found\n");
 		abort();
 	}
@@ -636,10 +660,40 @@ void readWall(void)
 	for (i=0; i< dimwid; i++) {
 		for (j=0; j<dimhgt; j++) {
 			fread (data, sizeof(unsigned char), 3, fp_dat);
-			texture[i][j][0] = (GLubyte) data[0];
-			texture[i][j][1] = (GLubyte) data[1];
-			texture[i][j][2] = (GLubyte) data[2];
+			walltexture[i][j][0] = (GLubyte) data[0];
+			walltexture[i][j][1] = (GLubyte) data[1];
+			walltexture[i][j][2] = (GLubyte) data[2];
 		}
 	}
+	
+	
+	if ((fp_dat = fopen (f2, "rb")) == NULL) {
+		printf ("file not found\n");
+		abort();
+	}
+	
+	for (i=0; i< 216; i++) {
+		for (j=0; j<286; j++) {
+			fread (data, sizeof(unsigned char), 3, fp_dat);
+			blueball[i][j][0] = (GLubyte) data[0];
+			blueball[i][j][1] = (GLubyte) data[1];
+			blueball[i][j][2] = (GLubyte) data[2];
+		}
+	}
+	
+	if ((fp_dat = fopen (f3, "rb")) == NULL) {
+		printf ("file not found\n");
+		abort();
+	}
+	
+	for (i=0; i< 216; i++) {
+		for (j=0; j<286; j++) {
+			fread (data, sizeof(unsigned char), 3, fp_dat);
+			orangeball[i][j][0] = (GLubyte) data[0];
+			orangeball[i][j][1] = (GLubyte) data[1];
+			orangeball[i][j][2] = (GLubyte) data[2];
+		}
+	}
+	
 	
 }
