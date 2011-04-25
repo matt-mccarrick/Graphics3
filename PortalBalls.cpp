@@ -193,6 +193,7 @@ void moveCamera(){
 		cameraPos[1] = 0;
 		canJump = true;	
 	}else{
+		//printf("cameraPos %f\n", cameraPos[1]);
 		canJump = false;
 	}
 	glTranslatef(-cameraPos[0],-cameraPos[1],-cameraPos[2]);
@@ -287,14 +288,16 @@ bool wallCollision(int which, float increment){
 				}
 				break;
 			case 1:
-				if(cameraPos[0] + increment > walls[k].xMin - WALL_PLAYER_BORDER && 
-					cameraPos[0] + increment < walls[k].xMax + WALL_PLAYER_BORDER && 
+				if(cameraPos[0] > walls[k].xMin - WALL_PLAYER_BORDER && 
+					cameraPos[0] < walls[k].xMax + WALL_PLAYER_BORDER && 
 					cameraPos[1] + increment > walls[k].yMin - WALL_PLAYER_BORDER && 
 					cameraPos[1] + increment < walls[k].yMax + WALL_PLAYER_BORDER && 
 					cameraPos[2] > walls[k].zMin - WALL_PLAYER_BORDER && 
 					cameraPos[2] < walls[k].zMax + WALL_PLAYER_BORDER){
-					wallColl = true;
+					canJump = true;
 					return true;
+				}else{
+					//canJump = false;
 				}
 				break;
 			case 2:
