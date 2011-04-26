@@ -414,13 +414,11 @@ void keyCheck(){
 		yRotRad = (cameraYRot / 180 * 3.141592654f);
 		xRotRad = (cameraXRot / 180 * 3.141592654f);
 		float xInc = float(sin(yRotRad)) * 0.75;
-		float yInc = -float(sin(xRotRad)) * 0.75;
+
 		float zInc = -float(cos(yRotRad)) * 0.75;
 
 		if(!wallCollision(0,xInc))
 			cameraPos[0] += xInc;
-		if(!wallCollision(1,yInc))
-			cameraPos[1] += yInc;
 		if(!wallCollision(2,zInc))
 			cameraPos[2] += zInc;
 	}
@@ -428,13 +426,11 @@ void keyCheck(){
 		yRotRad = (cameraYRot / 180 * 3.141592654f);
 		xRotRad = (cameraXRot / 180 * 3.141592654f); 
 		float xInc = -float(sin(yRotRad)) * 0.75;
-		float yInc = float(sin(xRotRad)) * 0.75;
+
 		float zInc = float(cos(yRotRad)) * 0.75;
 
 		if(!wallCollision(0,xInc))
 			cameraPos[0] += xInc;
-		if(!wallCollision(1,yInc))
-			cameraPos[1] += yInc;
 		if(!wallCollision(2,zInc))
 			cameraPos[2] += zInc;
 
@@ -512,7 +508,7 @@ void shootPBall(int which){
 	yRotRad = (cameraYRot / 180 * M_PI);
 	xRotRad = (cameraXRot / 180 * M_PI);
 	shotInc[0] = (float)(sin(yRotRad));
-	shotInc[1] = - (float)(sin(xRotRad));
+	shotInc[1] = - (float)(tan(xRotRad));
 	shotInc[2] = - (float)(cos(yRotRad));
 
 	shotPos[0] = cameraPos[0] + shotInc[0];
@@ -651,7 +647,7 @@ void readTextures()
 	int i, j;
 	unsigned char data[3];
 	FILE *fp_dat;
-	char f1[256] = "newwall.dat";
+	char f1[256] = "wall.dat";
 	char f2[256] = "blue.dat";
 	char f3[256] = "orange.dat";
 
@@ -668,7 +664,6 @@ void readTextures()
 			walltexture[i][j][2] = (GLubyte) data[2];
 		}
 	}
-	
 	
 	if ((fp_dat = fopen (f2, "rb")) == NULL) {
 		printf ("file not found\n");
@@ -697,6 +692,4 @@ void readTextures()
 			orangeball[i][j][2] = (GLubyte) data[2];
 		}
 	}
-	
-	
 }
