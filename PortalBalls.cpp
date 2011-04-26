@@ -266,7 +266,7 @@ void checkShotCollision(){
 	int k;
 	for(i = 0; i < MAX_PORTALS; i ++){
 		for(k = 0; k < NUM_WALLS; k++){
-			if(!balls[i].isPortal){
+			if(!balls[i].isPortal && balls[i].exists){
 				bool xOk = balls[i].pos[0] > walls[k].xMin - WALL_BALL_BORDER
 					&& balls[i].pos[0] < walls[k].xMax + WALL_BALL_BORDER;
 				bool yOk = balls[i].pos[1] > walls[k].yMin - WALL_BALL_BORDER
@@ -322,7 +322,10 @@ bool wallCollision(int which, float increment){
 					cameraPos[1] + increment < walls[k].yMax + WALL_PLAYER_BORDER && 
 					cameraPos[2] > walls[k].zMin - WALL_PLAYER_BORDER && 
 					cameraPos[2] < walls[k].zMax + WALL_PLAYER_BORDER){
-					canJump = true;
+					if(cameraPos[1] > walls[k].yMax){
+						cameraPos[1] = walls[k].yMax + WALL_PLAYER_BORDER + .1;
+						canJump = true;
+					}
 					return true;
 				}else{
 					//canJump = false;
