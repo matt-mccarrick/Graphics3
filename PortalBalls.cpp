@@ -12,12 +12,12 @@
 #define MAX_PORTALS 2
 #define WALL_BALL_BORDER 3.0
 #define WALL_PLAYER_BORDER 1.0
-#define NUM_WALLS 20
+#define NUM_WALLS 30
 #define PORTAL_SIZE 5.0
 #define dimwid 216
 #define dimhgt 286
 
-enum WallType { Textured, Solid ,Gray};
+enum WallType { Wall, Panel, Gray};
 
 void init(void);
 void initWalls(void);
@@ -65,6 +65,7 @@ int lastX, lastY;
 bool wallColl, inPortal[MAX_PORTALS], canJump;
 
 GLubyte walltexture[dimwid][dimhgt][3];
+GLubyte paneltexture[71][141][3];
 GLubyte blueball[216][286][3];
 GLubyte orangeball[216][286][3];
 
@@ -241,15 +242,21 @@ void displayWalls(){
 	int i;
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimwid,dimhgt, 0, GL_RGB, GL_UNSIGNED_BYTE, walltexture);
 	for (i = 0; i < NUM_WALLS; i++){
-		if(walls[i].type == Textured)
+		if(walls[i].type == Wall){
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, dimwid,dimhgt, 0, GL_RGB, GL_UNSIGNED_BYTE, walltexture);
 			glEnable(GL_TEXTURE_2D);
+		}
+		else if(walls[i].type == Panel){
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 71,141, 0, GL_RGB, GL_UNSIGNED_BYTE, paneltexture);
+			glEnable(GL_TEXTURE_2D);
+		}
 		else if(walls[i].type == Gray)
 			glColor3f(0.89,0.89,0.89);
 		else
 			glColor3f(1.0,1.0,0.0);
 		buildWall(walls[i].xMin,walls[i].xMax,walls[i].yMin,walls[i].yMax,
 			walls[i].zMin, walls[i].zMax);
-		if(walls[i].type == Textured)
+		if(walls[i].type == Wall || walls[i].type == Panel)
 			glDisable(GL_TEXTURE_2D);
 	}
 }
@@ -366,7 +373,7 @@ void portalCollision(){
 }
 
 void updatePosition(){
-	if(cameraPos[1] >= 0 && !wallCollision(1,velocity)){
+	if(!wallCollision(1,velocity)){
 		velocity += GRAVITY;
 		cameraPos[1] += velocity;
 	}else{
@@ -381,7 +388,7 @@ void reshape(int width, int height){
 
 	glLoadIdentity();
 
-	gluPerspective(60, (GLfloat)width/(GLfloat)height, 1.0f, 1000.0f);
+	gluPerspective(60, (GLfloat)width/(GLfloat)height, 1.0f, 1250.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -536,31 +543,36 @@ void initWalls(){
 	
 	// Four main walls
 	for(i = 0; i < 4; i++){
-		setupWall(i, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth, Textured);		
+		setupWall(i, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth, Wall);		
 	}	
 	zpos += (4 * width);
 	for(i = 0; i < 4; i++){
-		setupWall(i + 4, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth, Textured);		
+		setupWall(i + 4, xpos + (i*width), xpos + ((i + 1) * width), ypos, ypos + height, zpos, zpos + depth, Wall);		
 	}
 	zpos = zposinit;
 	for(i = 0 ; i < 4; i++){
-		setupWall(i + 8, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width), Textured);	
+		setupWall(i + 8, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width), Wall);	
 	}
 	xpos += (4 * width);
 	for(i = 0 ; i < 4; i++){
-		setupWall(i + 12, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width), Textured);	
+		setupWall(i + 12, xpos, xpos + depth, ypos, ypos + height, zpos + (i*width), zpos + ((i + 1) * width), Wall);	
 	}	
 	xpos = xposinit;
 	
 	// Floor and Ceiling
-	setupWall(16, xpos, xpos + (4*width), -12, -4, zpos, zpos + (4*width), Textured);
-	setupWall(17, xpos, xpos + (4*width), height -12, height, zpos, zpos + (4*width), Textured);
+	setupWall(16, xpos, xpos + (4*width), -12, -4, zpos, zpos + (4*width), Wall);
+	setupWall(17, xpos, xpos + (4*width), height -12, height, zpos, zpos + (4*width), Wall);
 	
 	// Pillar
-	setupWall(18, xpos + width, xpos + width + 50, ypos, ypos + height, zpos + width, zpos + width + 50, Textured);
+	setupWall(18, xpos + width, xpos + width + 50, ypos, ypos + height, zpos + width, zpos + width + 50, Wall);
 	
 	// Wall within room
-	setupWall(19, xpos + width, xpos + width + 4, ypos, ypos + height, zpos + width*2, zpos + width*3, Textured);
+	setupWall(19, xpos + width, xpos + width + 4, ypos, ypos + height, zpos + width*2, zpos + width*3, Wall);
+	
+	// Wall stair-like platform
+	for(i = 0; i < 8; i++){
+		setupWall(i + 20, xpos + (i*width/2), xpos + width/2 + (i*width/2), ypos + 20 + (i * 20), ypos + 28 + (i * 20), zpos, zpos + 100, Wall);
+	}
 }
 
 void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin,float zMax, WallType type){
@@ -649,6 +661,7 @@ void readTextures()
 	char f1[256] = "wall.dat";
 	char f2[256] = "blue.dat";
 	char f3[256] = "orange.dat";
+	char f4[256] = "panel.dat";
 
 	if ((fp_dat = fopen (f1, "rb")) == NULL) {
 		printf ("file not found\n");
@@ -689,6 +702,20 @@ void readTextures()
 			orangeball[i][j][0] = (GLubyte) data[0];
 			orangeball[i][j][1] = (GLubyte) data[1];
 			orangeball[i][j][2] = (GLubyte) data[2];
+		}
+	}
+	
+	if ((fp_dat = fopen (f4, "rb")) == NULL) {
+		printf ("file not found\n");
+		abort();
+	}
+	
+	for (i=0; i< 71; i++) {
+		for (j=0; j<141; j++) {
+			fread (data, sizeof(unsigned char), 3, fp_dat);
+			paneltexture[i][j][0] = (GLubyte) data[0];
+			paneltexture[i][j][1] = (GLubyte) data[1];
+			paneltexture[i][j][2] = (GLubyte) data[2];
 		}
 	}
 }
