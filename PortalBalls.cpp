@@ -12,7 +12,7 @@
 #define MAX_PORTALS 2
 #define WALL_BALL_BORDER 3.0
 #define WALL_PLAYER_BORDER 1.0
-#define NUM_WALLS 30
+#define NUM_WALLS 31
 #define PORTAL_SIZE 5.0
 #define dimwid 216
 #define dimhgt 286
@@ -573,6 +573,12 @@ void initWalls(){
 	for(i = 0; i < 8; i++){
 		setupWall(i + 20, xpos + (i*width/2), xpos + width/2 + (i*width/2), ypos + 20 + (i * 20), ypos + 28 + (i * 20), zpos, zpos + 100, Wall);
 	}
+	
+	xpos += (3*width);
+	zpos += (3*width);
+	setupWall(28, xpos, xpos + 200, ypos, ypos + height/2, zpos, zpos + 8, Wall);
+	setupWall(29, xpos, xpos + 8, ypos, ypos + height/2, zpos, zpos + width/2, Wall); 
+	setupWall(30, xpos + 8, xpos + 200, ypos + height/2 -13, ypos + height/2 - 5, zpos + 8, zpos + width/2, Wall); 
 }
 
 void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin,float zMax, WallType type){
