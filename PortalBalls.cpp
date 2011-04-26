@@ -199,7 +199,6 @@ void moveCamera(){
 		cameraPos[1] = 0;
 		canJump = true;	
 	}else{
-		//printf("cameraPos %f\n", cameraPos[1]);
 		canJump = false;
 	}
 	glTranslatef(-cameraPos[0],-cameraPos[1],-cameraPos[2]);
@@ -414,13 +413,10 @@ void keyCheck(){
 		yRotRad = (cameraYRot / 180 * 3.141592654f);
 		xRotRad = (cameraXRot / 180 * 3.141592654f);
 		float xInc = float(sin(yRotRad)) * 0.75;
-		float yInc = -float(sin(xRotRad)) * 0.75;
 		float zInc = -float(cos(yRotRad)) * 0.75;
 
 		if(!wallCollision(0,xInc))
 			cameraPos[0] += xInc;
-		if(!wallCollision(1,yInc))
-			cameraPos[1] += yInc;
 		if(!wallCollision(2,zInc))
 			cameraPos[2] += zInc;
 	}
@@ -428,13 +424,10 @@ void keyCheck(){
 		yRotRad = (cameraYRot / 180 * 3.141592654f);
 		xRotRad = (cameraXRot / 180 * 3.141592654f); 
 		float xInc = -float(sin(yRotRad)) * 0.75;
-		float yInc = float(sin(xRotRad)) * 0.75;
 		float zInc = float(cos(yRotRad)) * 0.75;
 
 		if(!wallCollision(0,xInc))
 			cameraPos[0] += xInc;
-		if(!wallCollision(1,yInc))
-			cameraPos[1] += yInc;
 		if(!wallCollision(2,zInc))
 			cameraPos[2] += zInc;
 
@@ -485,8 +478,10 @@ void mouseMove(int x, int y){
 	//set the xrot to yrot with the addition of the difference in the x position
 
     cameraYRot += (float) diffx;
-	if ((x >= (WIN_DIM/2) + 5 || x <= (WIN_DIM/2) - 5 || 
-		y >= (WIN_DIM/2) + 5 || y <= (WIN_DIM/2) - 5)){
+    
+    //if it hasn't moved too far, don't warp the pointer
+	if ((x >= (WIN_DIM/2) + 1 || x <= (WIN_DIM/2) - 1 || 
+		y >= (WIN_DIM/2) + 1 || y <= (WIN_DIM/2) - 1)){
 		lastX = WIN_DIM/2;
 		lastY = WIN_DIM/2;
 		glutWarpPointer(lastX, lastY);
@@ -512,8 +507,8 @@ void shootPBall(int which){
 	yRotRad = (cameraYRot / 180 * M_PI);
 	xRotRad = (cameraXRot / 180 * M_PI);
 	shotInc[0] = (float)(sin(yRotRad));
-	shotInc[1] = - (float)(sin(xRotRad));
-	shotInc[2] = - (float)(cos(yRotRad));
+	shotInc[1] =  -(float)(sin(xRotRad));
+	shotInc[2] =  -(float)(cos(yRotRad));
 
 	shotPos[0] = cameraPos[0] + shotInc[0];
 	shotPos[1] = cameraPos[1] + shotInc[1];
