@@ -194,13 +194,13 @@ void movePBalls(){
 void moveCamera(){
 	glRotatef(cameraXRot, 1.0, 0.0, 0.0);
 	glRotatef(cameraYRot, 0.0, 1.0, 0.0);
-	
+	/*
 	if(cameraPos[1] < 0){
 		cameraPos[1] = 0;
 		canJump = true;	
 	}else{
 		canJump = false;
-	}
+	}*/
 	glTranslatef(-cameraPos[0],-cameraPos[1],-cameraPos[2]);
 	
 }
@@ -366,11 +366,13 @@ void portalCollision(){
 }
 
 void updatePosition(){
-	if(cameraPos[1] >= 0 && !wallCollision(1,velocity)){
+	if(!wallCollision(1,velocity)){
 		velocity += GRAVITY;
 		cameraPos[1] += velocity;
+		canJump = false;
 	}else{
 		velocity = 0;
+		canJump = true;
 	}
 }
 
