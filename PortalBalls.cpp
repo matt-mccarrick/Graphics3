@@ -12,7 +12,7 @@
 #define MAX_PORTALS 2
 #define WALL_BALL_BORDER 3.0
 #define WALL_PLAYER_BORDER 1.0
-#define NUM_WALLS 31
+#define NUM_WALLS 35
 #define PORTAL_SIZE 5.0
 #define dimwid 216
 #define dimhgt 286
@@ -130,8 +130,6 @@ void init(){
 	balls[1].color[2] = 0.0;
 	
 	readTextures();
-	//balltexture = LoadTexture( "bricks.dat", 256, 256 ); 
-	//glEnable(GL_TEXTURE_2D);
 
 	// specify combination of texture with surface color
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -144,10 +142,6 @@ void init(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	// specify texture image parameters
-	
-	
 
 	initWalls();
 
@@ -376,7 +370,7 @@ void portalCollision(){
 }
 
 void updatePosition(){
-	if(!wallCollision(1,velocity)){
+	if(!wallCollision(1,velocity * 2)){
 		velocity += GRAVITY;
 		cameraPos[1] += velocity;
 		canJump = false;
@@ -579,11 +573,15 @@ void initWalls(){
 		setupWall(i + 20, xpos + (i*width/2), xpos + width/2 + (i*width/2), ypos + 20 + (i * 20), ypos + 28 + (i * 20), zpos, zpos + 100, Wall);
 	}
 	
+	// Back corner structure
 	xpos += (3*width);
 	zpos += (3*width);
-	setupWall(28, xpos, xpos + 200, ypos, ypos + height/2, zpos, zpos + 8, Wall);
+	setupWall(28, xpos + 8, xpos + 200, ypos, ypos + height/2, zpos, zpos + 8, Wall);
 	setupWall(29, xpos, xpos + 8, ypos, ypos + height/2, zpos, zpos + width/2, Wall); 
 	setupWall(30, xpos + 8, xpos + 200, ypos + height/2 -13, ypos + height/2 - 5, zpos + 8, zpos + width/2, Wall); 
+	setupWall(31, xpos - (2*width), xpos, ypos + height/2 - 50, ypos + height/2, zpos, zpos + 50, Wall);	
+	xpos = xposinit;
+	zpos = zposinit;
 }
 
 void setupWall(int which, float xMin,float xMax,float yMin,float yMax,float zMin,float zMax, WallType type){
